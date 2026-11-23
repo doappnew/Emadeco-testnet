@@ -1,0 +1,32 @@
+# Blueprint Render : un seul service web (API Express + frontend compilé).
+services:
+  - type: web
+    name: emadeco
+    runtime: node
+    plan: free                 # les instances gratuites se mettent en veille (1re requête ~50 s)
+    # --include=dev : NODE_ENV=production sinon npm ignorerait vite/tsc nécessaires au build
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PI_NETWORK
+        value: testnet
+      - key: PI_API_BASE
+        value: https://api.minepi.com/v2
+      - key: PI_SANDBOX
+        value: "false"
+      - key: SUPABASE_URL
+        sync: false            # à saisir dans le tableau de bord (jamais dans Git)
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: PI_VALIDATION_KEY
+        sync: false
+      - key: ADMIN_PI_USERNAMES
+        sync: false
