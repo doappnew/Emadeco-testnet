@@ -1,5 +1,6 @@
 import { createApp } from './app.js';
 import { loadConfig } from './config.js';
+import { startKeepAlive } from './lib/keepAlive.js';
 import { logger } from './lib/logger.js';
 import { createStore } from './store/index.js';
 
@@ -14,6 +15,7 @@ async function main() {
       pi_network: config.pi.network,
       demo_mode: config.demoMode,
     });
+    startKeepAlive();
   });
 }
 
