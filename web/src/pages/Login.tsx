@@ -36,13 +36,13 @@ export default function Login() {
     <div className="login">
       <Logo />
       <h1>Bienvenue</h1>
-      <p>Connectez-vous pour envoyer des demandes, suivre vos échanges et enregistrer vos favoris.</p>
+      <p>Connectez-vous pour accéder à la boutique, passer vos commandes et suivre vos échanges.</p>
 
       <button className="btn btn-primary btn-block" disabled={busy} onClick={() => run(loginWithPi)}>
         <KeyRound size={18} aria-hidden /> {busy ? 'Connexion en cours…' : 'Se connecter avec Pi'}
       </button>
       <p className="muted small">
-        La connexion Pi fonctionne dans <strong>Pi Browser</strong>. Aucune donnée financière n’est demandée par EMADECO.
+        La connexion Pi fonctionne dans <strong>Pi Browser</strong>. EMADECO ne vous demande jamais votre phrase secrète Pi.
       </p>
       {error && (
         <p className="notice notice-error" role="alert">

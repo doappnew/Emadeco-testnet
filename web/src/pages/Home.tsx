@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { Award, Handshake, Search, ShieldCheck, Sparkles } from 'lucide-react';
+import { Award, Handshake, KeyRound, Search, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CategoryCard, ProviderCard } from '../components/cards';
 import { PortfolioGrid } from '../components/cards';
+import HeroCarousel from '../components/HeroCarousel';
 import { ErrorState, SectionTitle, Spinner } from '../components/ui';
 import { api } from '../lib/api';
+import { useAuth } from '../lib/auth';
 import { useAsync } from '../lib/hooks';
+import { formatPi, type Product } from '../lib/shop';
 import type { Category, PortfolioItem, ProviderCardData } from '../lib/types';
+import { ProductCard } from './shop/ProductCard';
 
 interface HomeData {
   categories: Category[];
@@ -22,50 +26,116 @@ const VALUES = [
 ];
 
 export default function Home() {
+  const { ready, user, config, loginWithPi } = useAuth();
   const nav = useNavigate();
   const [q, setQ] = useState('');
-  const { data, loading, error, reload } = useAsync(() => api.get<HomeData>('/home'), []);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const login = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await loginWithPi();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Connexion impossible.');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <>
-      <section className="hero">
-        <img className="hero-img" src="/img/hero.webp" alt="" fetchPriority="high" />
-        <div className="hero-shade" />
-        <div className="hero-content">
-          <h1>Vos événements, notre passion</h1>
-          <p>Des ambiances qui marquent les esprits et subliment vos moments.</p>
+      <HeroCarousel>
+        <h1>Vos événements, notre passion</h1>
+        <p>Des ambiances qui marquent les esprits et subliment vos moments.</p>
+        {!ready ? null : user ? (
           <form
             className="search"
             role="search"
             onSubmit={(e) => {
               e.preventDefault();
-              nav(`/explorer${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ''}`);
+              nav(`/boutique${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ''}`);
             }}
           >
             <Search size={18} aria-hidden />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Quel service ?" aria-label="Rechercher un service" maxLength={80} />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Quel produit ?" aria-label="Rechercher un produit" maxLength={80} />
             <button className="btn btn-gold btn-sm" type="submit">
               Chercher
             </button>
           </form>
-        </div>
-      </section>
+        ) : (
+          <div className="hero-login">
+            <button className="btn btn-gold btn-block btn-lg" disabled={busy} onClick={login}>
+              <KeyRound size={20} aria-hidden /> {busy ? 'Connexion en cours…' : 'Se connecter avec Pi'}
+            </button>
+            <p className="hero-hint">Connexion obligatoire pour accéder à la boutique et à toutes les sections.</p>
+            {error && (
+              <p className="notice notice-error" role="alert">
+                {error}
+              </p>
+            )}
+            {config?.demo_mode && (
+              <Link to="/connexion" className="link-btn hero-demo">
+                Mode démonstration
+              </Link>
+            )}
+          </div>
+        )}
+      </HeroCarousel>
 
-      {loading && <Spinner />}
+      {!ready && <Spinner />}
+      {ready && user && <HomeContent />}
+
+      <SectionTitle>Nos engagements</SectionTitle>
+      <ul className="values">
+        {VALUES.map(({ icon: Icon, title, text }) => (
+          <li key={title}>
+            <Icon size={22} aria-hidden />
+            <strong>{title}</strong>
+            <span>{text}</span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+/** Contenu réservé aux pionniers connectés. */
+function HomeContent() {
+  const home = useAsync(() => api.get<HomeData>('/home'), []);
+  const shop = useAsync(() => api.get<{ products: Product[] }>('/shop/products'), []);
+  const { data, loading, error, reload } = home;
+
+  return (
+    <>
+      {(loading || shop.loading) && !data && <Spinner />}
       {error && <ErrorState message={error} onRetry={reload} />}
+
+      {shop.data && shop.data.products.length > 0 && (
+        <>
+          <SectionTitle action={<Link to="/boutique">Voir la boutique</Link>}>Boutique</SectionTitle>
+          <div className="prod-strip">
+            {shop.data.products.slice(0, 8).map((p) => (
+              <ProductCard key={p.id} p={p} compact />
+            ))}
+          </div>
+          <p className="muted small">Prix de test en Pi (réseau d’essai) — par exemple {formatPi(shop.data.products[0]!.price_pi)}.</p>
+        </>
+      )}
 
       {data && (
         <>
-          <SectionTitle action={<Link to="/explorer">Voir tout</Link>}>Nos services</SectionTitle>
+          <SectionTitle action={<Link to="/boutique">Voir tout</Link>}>Nos catégories</SectionTitle>
           <div className="cat-grid">
             {data.categories.slice(0, 6).map((c) => (
-              <CategoryCard key={c.id} c={c} />
+              <CategoryCard key={c.id} c={c} to={`/boutique?category=${c.slug}`} />
             ))}
           </div>
           {data.categories.length > 6 && (
             <div className="chips-row" aria-label="Autres catégories">
               {data.categories.slice(6).map((c) => (
-                <Link key={c.id} to={`/explorer?category=${c.slug}`} className="chip">
+                <Link key={c.id} to={`/boutique?category=${c.slug}`} className="chip">
                   {c.name}
                 </Link>
               ))}
@@ -79,33 +149,18 @@ export default function Home() {
             </>
           )}
 
-          <SectionTitle action={<Link to="/explorer">Tous les prestataires</Link>}>Prestataires recommandés</SectionTitle>
-          {data.providers.length === 0 ? (
-            <p className="muted">Les premiers prestataires arrivent bientôt.</p>
-          ) : (
-            <div className="stack">
-              {data.providers.slice(0, 4).map((p) => (
-                <ProviderCard key={p.id} p={p} />
-              ))}
-            </div>
+          {data.providers.length > 0 && (
+            <>
+              <SectionTitle action={<Link to="/explorer">Tous les prestataires</Link>}>Prestataires recommandés</SectionTitle>
+              <div className="stack">
+                {data.providers.slice(0, 4).map((p) => (
+                  <ProviderCard key={p.id} p={p} />
+                ))}
+              </div>
+            </>
           )}
-
-          <Link to="/explorer" className="btn btn-primary btn-block cta-main">
-            Demander un service
-          </Link>
         </>
       )}
-
-      <SectionTitle>Nos engagements</SectionTitle>
-      <ul className="values">
-        {VALUES.map(({ icon: Icon, title, text }) => (
-          <li key={title}>
-            <Icon size={22} aria-hidden />
-            <strong>{title}</strong>
-            <span>{text}</span>
-          </li>
-        ))}
-      </ul>
     </>
   );
 }

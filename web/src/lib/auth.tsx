@@ -91,8 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithPi = useCallback(async () => {
     let accessToken: string;
+    const incomplete: string[] = [];
     try {
-      accessToken = await piAuthenticate({ sandbox: config?.pi_sandbox ?? false });
+      accessToken = await piAuthenticate({ sandbox: config?.pi_sandbox ?? false, onIncomplete: (id) => incomplete.push(id) });
     } catch (e) {
       if (e instanceof PiUnavailableError) {
         throw new Error('Le SDK Pi est introuvable. Ouvrez EMADECO depuis Pi Browser pour vous connecter.');
@@ -102,6 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.post<{ token: string }>('/auth/pi', { accessToken });
       await finishLogin(res.token);
+      // Paiement resté en suspens : le serveur le reprend ou l'ignore (sans bloquer la connexion).
+      for (const paymentId of incomplete) void api.post('/shop/payments/incomplete', { paymentId }).catch(() => undefined);
     } catch (e) {
       throw new Error(errorMessage(e));
     }

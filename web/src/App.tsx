@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import { RequireAuth } from './components/guards';
 import Layout from './components/Layout';
+import Splash from './components/Splash';
 import { EmptyState, Spinner, ToastProvider } from './components/ui';
 import { AuthProvider } from './lib/auth';
 import BecomeProvider from './pages/BecomeProvider';
@@ -15,6 +16,11 @@ import ProviderPage from './pages/ProviderPage';
 import RequestDetail from './pages/RequestDetail';
 import RequestNew from './pages/RequestNew';
 import Requests from './pages/Requests';
+import Checkout from './pages/shop/Checkout';
+import OrderDetail from './pages/shop/OrderDetail';
+import Orders from './pages/shop/Orders';
+import ProductPage from './pages/shop/ProductPage';
+import Shop from './pages/shop/Shop';
 
 // Espaces peu fréquents : chargés à la demande pour alléger le premier affichage (connexions mobiles lentes).
 const ProviderDashboard = lazy(() => import('./pages/provider/ProviderDashboard'));
@@ -36,12 +42,18 @@ export default function App() {
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
+          <Splash />
           <Suspense fallback={<Spinner />}>
             <Routes>
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
-                <Route path="explorer" element={<Explore />} />
-                <Route path="prestataire/:id" element={<ProviderPage />} />
+                <Route path="boutique" element={<RequireAuth><Shop /></RequireAuth>} />
+                <Route path="boutique/:id" element={<RequireAuth><ProductPage /></RequireAuth>} />
+                <Route path="boutique/:id/commande" element={<RequireAuth><Checkout /></RequireAuth>} />
+                <Route path="commandes" element={<RequireAuth><Orders /></RequireAuth>} />
+                <Route path="commandes/:id" element={<RequireAuth><OrderDetail /></RequireAuth>} />
+                <Route path="explorer" element={<RequireAuth><Explore /></RequireAuth>} />
+                <Route path="prestataire/:id" element={<RequireAuth><ProviderPage /></RequireAuth>} />
                 <Route path="connexion" element={<Login />} />
                 <Route path="demande/nouvelle" element={<RequireAuth><RequestNew /></RequireAuth>} />
                 <Route path="demandes" element={<RequireAuth><Requests /></RequireAuth>} />

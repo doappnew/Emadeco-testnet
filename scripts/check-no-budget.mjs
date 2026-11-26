@@ -1,9 +1,27 @@
 #!/usr/bin/env node
 /**
- * Garde-fou « aucun budget » : échoue si le code de l'application, les migrations SQL ou les données
- * de démonstration contiennent un vocabulaire financier (champ de budget, tarif, prix, devis, montant…)
- * ou un flux de paiement Pi non prévu. Les tests (qui citent ces mots pour vérifier leur refus) sont exclus.
+ * Garde-fou « aucun budget dans les demandes de service » : échoue si le code des demandes, des prestataires,
+ * de l'exploration, du profil ou le schéma des demandes contiennent un vocabulaire financier (budget, tarif,
+ * prix, devis, montant…) ou un flux de paiement Pi.
+ * Seule la BOUTIQUE (produits à prix de test en Pi, commandes, paiement) peut en contenir : elle est listée
+ * explicitement dans SHOP_FILES ci-dessous. Les tests sont exclus.
  */
+const SHOP_FILES = [
+  'server/src/routes/shop.ts',
+  'server/src/routes/adminShop.ts',
+  'server/src/lib/piPayments.ts',
+  'server/src/lib/shopValidation.ts',
+  'server/src/store/shopSeed.ts',
+  'supabase/migrations/0006_shop.sql',
+  'supabase/migrations/0007_products_seed.sql',
+  'web/src/lib/shop.ts',
+  'web/src/lib/pi.ts',
+  'web/src/lib/auth.tsx',
+  'web/src/styles.css',
+  'web/src/pages/Home.tsx',
+  'web/src/pages/shop/',
+  'web/src/pages/admin/AdminShop.tsx',
+];
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +41,8 @@ const walk = (p) => {
     return;
   }
   if (!EXT.test(p) || /\.test\.(ts|tsx)$/.test(p)) return;
+  const rel = path.relative(root, p).split(path.sep).join('/');
+  if (SHOP_FILES.some((f) => (f.endsWith('/') ? rel.startsWith(f) : rel === f))) return;
   readFileSync(p, 'utf8').split('\n').forEach((line, i) => {
     // Les commentaires qui NIENT explicitement l'existence d'un budget ne sont pas du code : on les ignore.
     if (/^\s*(--|\/\/|\*|\/\*)/.test(line)) return;
@@ -36,4 +56,4 @@ if (hits.length) {
   console.error(`✗ ${hits.length} occurrence(s) interdite(s) :\n` + hits.join('\n'));
   process.exit(1);
 }
-console.log('✓ Aucun champ ni terme de budget/tarif/prix/devis/montant, aucun flux de paiement dans le code applicatif.');
+console.log('✓ Demandes, prestataires et exploration : aucun budget/tarif/prix/devis/montant ni paiement (seule la boutique en contient).');

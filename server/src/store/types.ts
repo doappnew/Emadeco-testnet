@@ -11,7 +11,9 @@ export type Table =
   | 'favorites'
   | 'notifications'
   | 'reports'
-  | 'admin_logs';
+  | 'admin_logs'
+  | 'products'
+  | 'orders';
 
 export interface Query {
   eq?: Record<string, unknown>;

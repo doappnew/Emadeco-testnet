@@ -1,3 +1,4 @@
+import { seedProducts } from './shopSeed.js';
 import type { Store } from './types.js';
 
 /** Catégories de référence (miroir de supabase/migrations/0004_categories.sql). */
@@ -117,4 +118,5 @@ export async function seedDemo(store: Store): Promise<void> {
     moderation_status: 'approved',
     created_at: new Date(Date.now() - i * 3600_000).toISOString(),
   })));
+  await seedProducts(store);
 }

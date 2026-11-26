@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, FileText, LogOut, Shield, Store } from 'lucide-react';
+import { Bell, FileText, Heart, LogOut, Package, Shield, Store } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Field, SectionTitle, useToast } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
@@ -50,8 +50,18 @@ export default function Profile() {
 
       <ul className="menu">
         <li>
+          <Link to="/commandes">
+            <Package size={20} aria-hidden /> Mes commandes
+          </Link>
+        </li>
+        <li>
           <Link to="/demandes">
-            <FileText size={20} aria-hidden /> Mes demandes
+            <FileText size={20} aria-hidden /> Mes demandes aux prestataires
+          </Link>
+        </li>
+        <li>
+          <Link to="/favoris">
+            <Heart size={20} aria-hidden /> Mes favoris
           </Link>
         </li>
         <li>

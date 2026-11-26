@@ -6,10 +6,13 @@ import { api, errorMessage } from '../../lib/api';
 import { formatDate, formatDateTime } from '../../lib/format';
 import { useAsync } from '../../lib/hooks';
 import type { Category, RequestStatus } from '../../lib/types';
+import { AdminOrders, AdminProducts } from './AdminShop';
 
-type Tab = 'stats' | 'providers' | 'portfolio' | 'users' | 'categories' | 'requests' | 'reports' | 'logs';
+type Tab = 'stats' | 'orders' | 'products' | 'providers' | 'portfolio' | 'users' | 'categories' | 'requests' | 'reports' | 'logs';
 const TABS: [Tab, string][] = [
   ['stats', 'Statistiques'],
+  ['orders', 'Commandes'],
+  ['products', 'Produits'],
   ['providers', 'Prestataires'],
   ['portfolio', 'Photos'],
   ['users', 'Utilisateurs'],
@@ -37,6 +40,8 @@ export default function AdminPage() {
         ))}
       </div>
       {tab === 'stats' && <Stats />}
+      {tab === 'orders' && <AdminOrders />}
+      {tab === 'products' && <AdminProducts />}
       {tab === 'providers' && <Providers />}
       {tab === 'portfolio' && <Portfolio />}
       {tab === 'users' && <Users />}

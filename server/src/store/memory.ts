@@ -13,6 +13,8 @@ const TABLES: Table[] = [
   'notifications',
   'reports',
   'admin_logs',
+  'products',
+  'orders',
 ];
 
 function matches(row: Row, q?: Query): boolean {

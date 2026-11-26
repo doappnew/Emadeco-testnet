@@ -6,9 +6,9 @@ import { useAuth } from '../lib/auth';
 import type { Category, PortfolioItem, ProviderCardData } from '../lib/types';
 import { Img, useToast } from './ui';
 
-export function CategoryCard({ c }: { c: Category }) {
+export function CategoryCard({ c, to }: { c: Category; to?: string }) {
   return (
-    <Link to={`/explorer?category=${encodeURIComponent(c.slug)}`} className="cat-card">
+    <Link to={to ?? `/explorer?category=${encodeURIComponent(c.slug)}`} className="cat-card">
       <Img src={c.image_url} alt="" />
       <span>{c.name}</span>
     </Link>

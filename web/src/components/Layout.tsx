@@ -1,12 +1,12 @@
-import { Bell, Heart, Home, Compass, FileText, User } from 'lucide-react';
+import { Bell, Compass, Home, Package, Store, User } from 'lucide-react';
 import { NavLink, Outlet, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 
 const TABS = [
   { to: '/', label: 'Accueil', icon: Home, end: true },
-  { to: '/explorer', label: 'Explorer', icon: Compass },
-  { to: '/demandes', label: 'Demandes', icon: FileText },
-  { to: '/favoris', label: 'Favoris', icon: Heart },
+  { to: '/boutique', label: 'Boutique', icon: Store },
+  { to: '/explorer', label: 'Prestataires', icon: Compass },
+  { to: '/commandes', label: 'Commandes', icon: Package },
   { to: '/profil', label: 'Profil', icon: User },
 ];
 
@@ -26,9 +26,10 @@ export function Logo({ small }: { small?: boolean }) {
 
 /** Coque de l'application : en-tête, contenu, navigation mobile à cinq onglets. */
 export default function Layout() {
-  const { user, unread, config } = useAuth();
+  const { ready, user, unread, config } = useAuth();
   const { pathname } = useLocation();
-  const hideNav = pathname.startsWith('/demande/nouvelle') || pathname.startsWith('/admin');
+  // Pas de navigation tant que le pionnier n'est pas connecté : la connexion vient d'abord.
+  const hideNav = !ready || !user || pathname.startsWith('/demande/nouvelle') || pathname.startsWith('/admin') || pathname.endsWith('/commande');
 
   return (
     <div className={`shell ${hideNav ? 'shell-nonav' : ''}`}>
@@ -41,10 +42,12 @@ export default function Layout() {
         <Link to="/" aria-label="Accueil EMADECO">
           <Logo small />
         </Link>
-        <Link to={user ? '/notifications' : '/connexion'} className="icon-btn" aria-label={`Notifications${unread ? `, ${unread} non lues` : ''}`}>
-          <Bell size={22} />
-          {unread > 0 && <span className="dot">{unread > 9 ? '9+' : unread}</span>}
-        </Link>
+        {user && (
+          <Link to="/notifications" className="icon-btn" aria-label={`Notifications${unread ? `, ${unread} non lues` : ''}`}>
+            <Bell size={22} />
+            {unread > 0 && <span className="dot">{unread > 9 ? '9+' : unread}</span>}
+          </Link>
+        )}
       </header>
       <main className="page">
         <Outlet />

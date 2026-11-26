@@ -71,14 +71,14 @@ afterAll(async () => {
 });
 
 describe('schéma', () => {
-  it('toutes les migrations s’appliquent et créent les 11 tables prévues', async () => {
+  it('toutes les migrations s’appliquent et créent les 13 tables prévues', async () => {
     const t = (await q(`select tablename from pg_tables where schemaname='public' order by 1`)).map((r) => r.tablename);
     expect(t).toEqual(
-      ['admin_logs', 'favorites', 'notifications', 'portfolio_items', 'profiles', 'provider_profiles', 'reports', 'request_messages', 'service_categories', 'service_requests', 'services'].sort(),
+      ['admin_logs', 'favorites', 'notifications', 'portfolio_items', 'profiles', 'provider_profiles', 'reports', 'request_messages', 'service_categories', 'service_requests', 'services', 'products', 'orders'].sort(),
     );
   });
-  it('AUCUNE colonne financière (budget, tarif, prix, montant, devis, estimation…)', async () => {
-    const cols = await q(`select table_name, column_name from information_schema.columns where table_schema='public'
+  it('AUCUNE colonne financière hors boutique (demandes, prestataires, services : ni budget, ni tarif, ni devis…)', async () => {
+    const cols = await q(`select table_name, column_name from information_schema.columns where table_schema='public' and table_name not in ('products','orders')
       and column_name ~* '(budget|price|prix|tarif|amount|montant|cost|cout|coût|devis|estimat|fee|frais|currency|devise)'`);
     expect(cols).toEqual([]);
   });
@@ -232,5 +232,28 @@ describe('RLS — écriture', () => {
     await as(ADM, async () => {
       expect((await db.query(`update reports set status='reviewed' returning id`)).rows.length).toBeGreaterThan(0);
     });
+  });
+});
+
+describe('boutique — SQL', () => {
+  it('produits de départ chargés, tous rattachés à une catégorie, prix positifs', async () => {
+    expect((await q('select count(*)::int n from products'))[0]!.n).toBe(28);
+    expect((await q('select count(*)::int n from products where category_id is null or price_pi <= 0'))[0]!.n).toBe(0);
+  });
+  it('anonyme : voit les produits actifs, jamais les commandes', async () => {
+    await as(null, async () => {
+      expect((await q('select count(*)::int n from products'))[0]!.n).toBe(28);
+      expect((await q('select count(*)::int n from orders'))[0]!.n).toBe(0);
+    });
+  });
+  it('un utilisateur ne peut ni créer un produit ni une commande directement (serveur uniquement)', async () => {
+    await as(A, async () => {
+      await expect(db.exec(`insert into products (title, price_pi) values ('Pirate', 0.01)`)).rejects.toThrow();
+      await expect(db.exec(`insert into orders (client_id, product_title, quantity, unit_price_pi, total_pi, recipient_name, phone, country, city, address) values ('${A}','x',1,1,1,'Nom X','123456','BJ','Cotonou','Adresse 1')`)).rejects.toThrow();
+    });
+  });
+  it('contraintes : quantité et montant', async () => {
+    await expect(db.exec(`insert into orders (client_id, product_title, quantity, unit_price_pi, total_pi, recipient_name, phone, country, city, address) values ('${A}','x',0,1,1,'Nom X','123456','BJ','Cotonou','Adresse 1')`)).rejects.toThrow();
+    await expect(db.exec(`insert into products (title, price_pi) values ('Gratuit', 0)`)).rejects.toThrow();
   });
 });
