@@ -13,8 +13,9 @@ const seen = () => {
 export default function Splash() {
   const [phase, setPhase] = useState<'show' | 'fade' | 'gone'>(() => (seen() ? 'gone' : 'show'));
 
+  // Les minuteurs ne se lancent qu'une fois, à l'ouverture (sinon le changement de phase les relançait).
   useEffect(() => {
-    if (phase === 'gone') return;
+    if (seen()) return;
     const t1 = setTimeout(() => setPhase('fade'), 2800);
     const t2 = setTimeout(() => {
       setPhase('gone');
@@ -28,7 +29,7 @@ export default function Splash() {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase]);
+  }, []);
 
   if (phase === 'gone') return null;
   return (
