@@ -98,7 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (e instanceof PiUnavailableError) {
         throw new Error('Le SDK Pi est introuvable. Ouvrez EMADECO depuis Pi Browser pour vous connecter.');
       }
-      throw new Error('Connexion Pi annulée ou impossible. Réessayez.');
+      // Détail technique court (message du SDK Pi) pour comprendre l'échec, sans donnée sensible.
+      const raw = typeof e === 'string' ? e : e instanceof Error ? e.message : typeof (e as { message?: unknown })?.message === 'string' ? String((e as { message: string }).message) : '';
+      const detail = raw.replace(/\s+/g, ' ').trim().slice(0, 140);
+      throw new Error(`Connexion Pi annulée ou impossible. Réessayez.${detail ? ` (Détail : ${detail})` : ''}`);
     }
     try {
       const res = await api.post<{ token: string }>('/auth/pi', { accessToken });

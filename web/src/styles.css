@@ -344,3 +344,6 @@ textarea { resize: vertical; }
 .legal a { color: var(--gold-d); text-decoration: underline; }
 .legal-link { text-align: center; margin: 24px 0 8px; }
 .legal-link a { color: var(--muted); text-decoration: underline; font-size: 0.9rem; }
+
+/* Message d'erreur lisible sur la photo de l'accueil */
+.hero .notice-error { background: #fbe9e9; color: #6e1d1d; text-align: center; margin: 0; }
