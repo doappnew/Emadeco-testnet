@@ -27,7 +27,9 @@ declare global {
 }
 
 let initialised = false;
-const SCOPES = ['username', 'payments'];
+// La connexion ne demande que « username ». Le droit « payments » n'est demandé qu'au moment de payer.
+const LOGIN_SCOPES = ['username'];
+const PAY_SCOPES = ['username', 'payments'];
 
 /** Attend la présence du SDK (script chargé en différé) sans bloquer indéfiniment. */
 function waitForPi(timeoutMs = 4000): Promise<PiSdk | null> {
@@ -61,7 +63,7 @@ async function sdk(sandbox: boolean): Promise<PiSdk> {
 /** Connexion Pi. `onIncomplete` reçoit l'identifiant d'un éventuel paiement resté en suspens. */
 export async function piAuthenticate(opts: { sandbox: boolean; onIncomplete?: (paymentId: string) => void }): Promise<string> {
   const Pi = await sdk(opts.sandbox);
-  const auth = await Pi.authenticate(SCOPES, (p) => opts.onIncomplete?.(p.identifier));
+  const auth = await Pi.authenticate(LOGIN_SCOPES, (p) => opts.onIncomplete?.(p.identifier));
   if (!auth?.accessToken) throw new Error('Jeton Pi manquant');
   return auth.accessToken;
 }
@@ -81,7 +83,7 @@ export async function piPay(o: PayOptions): Promise<'paid' | 'cancelled'> {
   const Pi = await sdk(o.sandbox);
   // Garantit que le droit « payments » est accordé (session ouverte avant l'ajout des paiements).
   const pending: string[] = [];
-  await Pi.authenticate(SCOPES, (p) => pending.push(p.identifier));
+  await Pi.authenticate(PAY_SCOPES, (p) => pending.push(p.identifier));
   for (const id of pending) await o.onIncomplete(id).catch(() => undefined);
 
   return new Promise((resolve, reject) => {
