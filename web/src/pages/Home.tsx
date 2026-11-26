@@ -98,7 +98,7 @@ export default function Home() {
         ))}
       </ul>
       <p className="legal-link">
-        <Link to="/confidentialite">Politique de confidentialité</Link>
+        <Link to="/confidentialite">Politique de confidentialité</Link> · <Link to="/conditions">Conditions d’utilisation</Link>
       </p>
     </>
   );

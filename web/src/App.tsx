@@ -22,6 +22,7 @@ import OrderDetail from './pages/shop/OrderDetail';
 import Orders from './pages/shop/Orders';
 import ProductPage from './pages/shop/ProductPage';
 import Shop from './pages/shop/Shop';
+import Terms from './pages/Terms';
 
 // Espaces peu fréquents : chargés à la demande pour alléger le premier affichage (connexions mobiles lentes).
 const ProviderDashboard = lazy(() => import('./pages/provider/ProviderDashboard'));
@@ -49,6 +50,7 @@ export default function App() {
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
                 <Route path="confidentialite" element={<Privacy />} />
+                <Route path="conditions" element={<Terms />} />
                 <Route path="boutique" element={<RequireAuth><Shop /></RequireAuth>} />
                 <Route path="boutique/:id" element={<RequireAuth><ProductPage /></RequireAuth>} />
                 <Route path="boutique/:id/commande" element={<RequireAuth><Checkout /></RequireAuth>} />

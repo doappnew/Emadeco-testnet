@@ -20,6 +20,7 @@ const SHOP_FILES = [
   'web/src/styles.css',
   'web/src/pages/Home.tsx',
   'web/src/pages/Privacy.tsx',
+  'web/src/pages/Terms.tsx',
   'web/src/pages/shop/',
   'web/src/pages/admin/AdminShop.tsx',
 ];
