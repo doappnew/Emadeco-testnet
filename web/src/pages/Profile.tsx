@@ -84,6 +84,11 @@ export default function Profile() {
             </Link>
           </li>
         )}
+        <li>
+          <Link to="/confidentialite">
+            <Shield size={20} aria-hidden /> Politique de confidentialité
+          </Link>
+        </li>
         {user.role === 'admin' && (
           <li>
             <Link to="/admin">

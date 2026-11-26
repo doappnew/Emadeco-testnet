@@ -19,6 +19,7 @@ const SHOP_FILES = [
   'web/src/lib/auth.tsx',
   'web/src/styles.css',
   'web/src/pages/Home.tsx',
+  'web/src/pages/Privacy.tsx',
   'web/src/pages/shop/',
   'web/src/pages/admin/AdminShop.tsx',
 ];

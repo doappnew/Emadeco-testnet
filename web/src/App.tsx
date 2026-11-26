@@ -15,6 +15,7 @@ import Profile from './pages/Profile';
 import ProviderPage from './pages/ProviderPage';
 import RequestDetail from './pages/RequestDetail';
 import RequestNew from './pages/RequestNew';
+import Privacy from './pages/Privacy';
 import Requests from './pages/Requests';
 import Checkout from './pages/shop/Checkout';
 import OrderDetail from './pages/shop/OrderDetail';
@@ -47,6 +48,7 @@ export default function App() {
             <Routes>
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
+                <Route path="confidentialite" element={<Privacy />} />
                 <Route path="boutique" element={<RequireAuth><Shop /></RequireAuth>} />
                 <Route path="boutique/:id" element={<RequireAuth><ProductPage /></RequireAuth>} />
                 <Route path="boutique/:id/commande" element={<RequireAuth><Checkout /></RequireAuth>} />

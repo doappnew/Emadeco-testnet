@@ -336,3 +336,11 @@ textarea { resize: vertical; }
 .order-admin p { margin: 4px 0; }
 .note-input { width: 100%; margin-top: 8px; min-height: 44px; border: 1.5px solid var(--line); border-radius: 12px; padding: 0 12px; background: var(--white); }
 .check { display: flex; align-items: center; gap: 10px; }
+
+/* ---- Pages légales ---- */
+.legal h2 { font-size: 1.15rem; margin: 22px 0 6px; }
+.legal p, .legal li { line-height: 1.55; overflow-wrap: anywhere; }
+.legal ul { padding-left: 20px; list-style: disc; display: grid; gap: 6px; margin: 6px 0; }
+.legal a { color: var(--gold-d); text-decoration: underline; }
+.legal-link { text-align: center; margin: 24px 0 8px; }
+.legal-link a { color: var(--muted); text-decoration: underline; font-size: 0.9rem; }
