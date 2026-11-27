@@ -32,12 +32,13 @@ function makePi() {
   return { fetchImpl, payments, calls, add };
 }
 
-async function setup(withKey = true) {
+async function setup(withKey = true, extra: Record<string, string> = {}) {
   const config = loadConfig({
     NODE_ENV: 'test',
     SESSION_SECRET: 'test-secret-test-secret-test-secret-123456',
     ADMIN_PI_USERNAMES: 'boss',
     ...(withKey ? { PI_API_KEY: 'test-api-key' } : {}),
+    ...extra,
   } as NodeJS.ProcessEnv);
   const store = new MemoryStore();
   await seedCategories(store);
@@ -104,6 +105,36 @@ describe('boutique — commande', () => {
     expect((await http.get(`/api/shop/orders/${o.id}`).set(b.auth)).status).toBe(404);
     expect((await http.get('/api/shop/orders').set(b.auth)).body.orders).toEqual([]);
     expect((await http.post(`/api/shop/orders/${o.id}/cancel`).set(b.auth)).status).toBe(404);
+  });
+});
+
+describe('boutique — plafond PI_MAX_PAYMENT', () => {
+  it('lit le plafond depuis la configuration (absent, invalide ou ≤ 0 = aucun plafond)', () => {
+    const base = { NODE_ENV: 'test' } as Record<string, string>;
+    expect(loadConfig({ ...base, PI_MAX_PAYMENT: '5' } as NodeJS.ProcessEnv).pi.maxPayment).toBe(5);
+    expect(loadConfig({ ...base, PI_MAX_PAYMENT: '0' } as NodeJS.ProcessEnv).pi.maxPayment).toBeNull();
+    expect(loadConfig({ ...base, PI_MAX_PAYMENT: 'abc' } as NodeJS.ProcessEnv).pi.maxPayment).toBeNull();
+    expect(loadConfig(base as NodeJS.ProcessEnv).pi.maxPayment).toBeNull();
+  });
+
+  it('refuse une commande dont le total dépasse le plafond, accepte celle qui l’égale', async () => {
+    const { http, login, store } = await setup(true, { PI_MAX_PAYMENT: '2' });
+    const u = await login('alice');
+    const [p] = await store.select('products', { eq: { is_active: true }, limit: 1 });
+    await store.update('products', { eq: { id: p!.id } }, { price_pi: 1 });
+    const over = await http.post('/api/shop/orders').set(u.auth).send({ product_id: p!.id, quantity: 3, delivery });
+    expect(over.status).toBe(400);
+    expect(over.body.error.message).toBe('Montant maximal autorisé pendant la phase de test : 2 Pi.');
+    expect(await store.count('orders', {})).toBe(0);
+    const ok = await http.post('/api/shop/orders').set(u.auth).send({ product_id: p!.id, quantity: 2, delivery });
+    expect(ok.status).toBe(201);
+  });
+
+  it('sans plafond configuré, aucune limite n’est appliquée', async () => {
+    const { http, login, store } = await setup();
+    const u = await login('alice');
+    const [p] = await store.select('products', { eq: { is_active: true }, limit: 1 });
+    expect((await http.post('/api/shop/orders').set(u.auth).send({ product_id: p!.id, quantity: 9, delivery })).status).toBe(201);
   });
 });
 

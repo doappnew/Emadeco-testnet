@@ -7,7 +7,7 @@ Application web mobile de **mise en relation** entre clients et prestataires de 
 - **Administrateur** : validation des prestataires, modération des photos, utilisateurs, catégories, demandes, signalements, statistiques, journal des actions.
 
 > **Aucun budget, tarif, prix, fourchette, devis ou estimation n'existe dans l'application** (ni champ, ni colonne SQL, ni filtre). Le serveur refuse tout champ inconnu dans une demande, et `npm run check:budget` fait échouer la CI si ce vocabulaire apparaît dans le code.
-> **Aucun paiement Pi n'est implémenté** : le cœur du produit est la mise en relation (voir §9).
+> **Paiements Pi : uniquement dans la boutique** (prix de test, Testnet). Les demandes, prestataires et l'exploration restent sans paiement ; le cœur du produit est la mise en relation (voir §9). Les paiements sont décidés et vérifiés côté serveur (`PI_API_KEY` obligatoire pour la boutique).
 
 ---
 
@@ -93,7 +93,7 @@ Développement avec rechargement : `cp .env.example .env` puis `npm run dev` (AP
 5. Si vous utilisez le bac à sable Pi, mettez `PI_SANDBOX=true` (transmis à `Pi.init({ sandbox: true })`).
 6. **Mainnet** : créez/obtenez une configuration **distincte** (URL vérifiée, `PI_NETWORK=mainnet`), puis suivez la liste de contrôle Mainnet de Pi (§8). Ne publiez pas avant cette vérification.
 
-Scopes demandés : `username` uniquement (aucun paiement, aucune adresse de portefeuille).
+Scopes demandés : `username` à la connexion (aucune adresse de portefeuille). Le droit `payments` n'est demandé qu'au moment de payer une commande de la boutique.
 
 ## Dépannage connexion Pi
 
@@ -138,7 +138,8 @@ Voir `.env.example` (aucune valeur secrète). Aucune variable n'est lue par le f
 | `PI_API_BASE` | non | `https://api.minepi.com/v2` |
 | `PI_SANDBOX` | non | `true` pour le bac à sable Pi |
 | `PI_VALIDATION_KEY` | recommandé | Clé de vérification de domaine Pi |
-| `PI_API_KEY` | non | Inutilisée (aucun paiement) |
+| `PI_API_KEY` | pour la boutique | Clé API serveur Pi (Developer Portal) : approuve et finalise les paiements de la boutique (`lib/piPayments.ts`). Sans elle, le paiement est refusé. Jamais dans Git ni dans les journaux |
+| `PI_MAX_PAYMENT` | non | Plafond par commande, en Pi. Si défini et > 0, toute commande dont le total le dépasse est refusée (« Montant maximal autorisé pendant la phase de test : X Pi. ») |
 | `STRICT_HEADERS` | non | `1` = applique helmet (CSP/COOP/CORP). Défaut : désactivé (§ Dépannage connexion Pi) |
 | `ADMIN_PI_USERNAMES` | recommandé | Administrateurs initiaux |
 | `DEMO_MODE` | non | Jamais actif en production |
@@ -168,7 +169,7 @@ Un parcours complet a aussi été joué dans Chrome (viewport 390 px) en mode d�
 
 `npm audit --omit=dev` : 0 vulnérabilité (dépendances de production). Les alertes restantes de `npm audit` concernent uniquement les outils de test/build (vitest, vite, esbuild) : sans effet sur le code déployé, à traiter lors d'une montée de version majeure.
 
-**Liste de contrôle avant Mainnet** (à confirmer sur la documentation Pi du moment) : authentification Pi obligatoire ✔ implémentée ; aucune redirection vers un service externe ✔ (aucun lien sortant) ; aucun paiement ✔ ; application enregistrée et domaine vérifié ✘ à faire ; test complet dans Pi Browser sur Testnet ✘ à faire ; revue par Pi ✘ à faire.
+**Liste de contrôle avant Mainnet** (à confirmer sur la documentation Pi du moment) : authentification Pi obligatoire ✔ implémentée ; aucune redirection vers un service externe ✔ (aucun lien sortant) ; paiements limités à la boutique, vérifiés côté serveur ✔ ; application enregistrée et domaine vérifié ✘ à faire ; test complet dans Pi Browser sur Testnet ✘ à faire ; revue par Pi ✘ à faire.
 
 ## 9. Ce qui est implémenté, testé, et ce qui reste à faire
 
@@ -180,9 +181,9 @@ Un parcours complet a aussi été joué dans Chrome (viewport 390 px) en mode d�
 | Adaptateur `SupabaseStore` sur un vrai projet Supabase (requêtes, stockage, URL signées) | ⚠️ **non testé en conditions réelles** (aucun projet Supabase n'a été créé ici) ; la logique au-dessus est identique à celle testée en mémoire |
 | Déploiement Render, domaine, clé de validation | ⏳ intervention humaine |
 | Approbation de l'application par Pi Network | ⏳ **pas obtenue** — le respect de ce cahier des charges ne la garantit pas |
-| Paiements Pi | ❌ **volontairement absents**. S'ils sont ajoutés un jour : flux officiel approbation/finalisation côté serveur, tests dédiés, revue des règles Pi |
+| Paiements Pi (boutique uniquement) | ✅ implémentés côté serveur (approbation/finalisation, montant décidé et vérifié par le serveur) et testés avec une fausse API Pi ; ⏳ **non testés en conditions réelles** : exigent `PI_API_KEY`, le portefeuille de l'application et la vérification du domaine dans le Developer Portal. Absents des demandes et prestataires |
 
-**Limites connues** : notifications visibles dans l'application uniquement (pas de notifications push) ; les échanges se rafraîchissent par interrogation toutes les 20 s (pas de temps réel) ; pas de notes/avis ; catalogues limités à 500 prestataires par requête (pagination à ajouter si besoin) ; les visuels de démonstration sont des recadrages basse définition des maquettes fournies — à remplacer par de vraies photos de réalisations ; la maquette violette fournie (« Payez en Pi », notes, prix) n'a **pas** été reprise : l'identité retenue suit le cahier des charges (vert/or/ivoire) et exclut paiements et tarifs.
+**Limites connues** : notifications visibles dans l'application uniquement (pas de notifications push) ; les échanges se rafraîchissent par interrogation toutes les 20 s (pas de temps réel) ; pas de notes/avis ; catalogues limités à 500 prestataires par requête (pagination à ajouter si besoin) ; les visuels de démonstration sont des recadrages basse définition des maquettes fournies — à remplacer par de vraies photos de réalisations ; la maquette violette fournie (« Payez en Pi », notes, prix) n'a **pas** été reprise : l'identité retenue suit le cahier des charges (vert/or/ivoire) et exclut paiements et tarifs hors boutique.
 
 ## 10. Données de démonstration
 

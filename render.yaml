@@ -28,5 +28,7 @@ services:
         sync: false
       - key: PI_VALIDATION_KEY
         sync: false
+      - key: PI_API_KEY
+        sync: false            # clé API serveur Pi (paiements de la boutique) : tableau de bord uniquement
       - key: ADMIN_PI_USERNAMES
         sync: false

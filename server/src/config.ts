@@ -25,6 +25,7 @@ const envSchema = z.object({
   DEMO_MODE: z.enum(['true', 'false']).optional(),
   WEB_DIR: z.string().optional(),
   STRICT_HEADERS: z.string().optional(),
+  PI_MAX_PAYMENT: z.string().optional(),
 });
 
 export interface Config {
@@ -32,7 +33,7 @@ export interface Config {
   port: number;
   sessionSecret: string;
   supabase: { url: string; serviceKey: string } | null;
-  pi: { apiBase: string; apiKey: string | null; network: 'testnet' | 'mainnet'; validationKey: string | null; sandbox: boolean };
+  pi: { apiBase: string; apiKey: string | null; network: 'testnet' | 'mainnet'; validationKey: string | null; sandbox: boolean; maxPayment: number | null };
   adminUsernames: string[];
   /** Connexion de démonstration (jamais active en production). */
   demoMode: boolean;
@@ -81,6 +82,8 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv = process.env): Config {
       network: e.PI_NETWORK,
       validationKey: e.PI_VALIDATION_KEY?.trim() || null,
       sandbox: e.PI_SANDBOX === 'true',
+      // Plafond par commande, en Pi (phase de test). Absent, invalide ou ≤ 0 : aucun plafond.
+      maxPayment: Number.isFinite(Number(e.PI_MAX_PAYMENT)) && Number(e.PI_MAX_PAYMENT) > 0 ? Number(e.PI_MAX_PAYMENT) : null,
     },
     adminUsernames: csv(e.ADMIN_PI_USERNAMES),
     demoMode,

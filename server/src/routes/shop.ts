@@ -113,6 +113,10 @@ export function shopRoutes(ctx: Ctx) {
       const open = await store.count('orders', { eq: { client_id: req.user!.id, status: 'awaiting_payment' } });
       if (open >= 10) throw conflict('Vous avez trop de commandes en attente de paiement. Réglez ou annulez-en.', 'too_many_open');
       const unit = Number(p.price_pi);
+      const max = ctx.config.pi.maxPayment;
+      if (max !== null && round4(unit * body.quantity) > max) {
+        throw badRequest(`Montant maximal autorisé pendant la phase de test : ${max} Pi.`, 'max_payment_exceeded');
+      }
       const [order] = await store.insert('orders', {
         client_id: req.user!.id,
         product_id: p.id,
