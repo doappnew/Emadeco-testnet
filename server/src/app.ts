@@ -11,6 +11,7 @@ import { attachUser } from './middleware.js';
 import { StoreError } from './store/types.js';
 import { adminRoutes } from './routes/admin.js';
 import { adminShopRoutes } from './routes/adminShop.js';
+import { adminPioneerRoutes, pioneerRoutes } from './routes/pioneer.js';
 import { shopRoutes } from './routes/shop.js';
 import { authRoutes } from './routes/auth.js';
 import { catalogRoutes } from './routes/catalog.js';
@@ -94,6 +95,8 @@ export function createApp(ctx: Ctx) {
   api.use(catalogRoutes(ctx));
   api.use('/provider', providerRoutes(ctx));
   api.use('/shop', shopRoutes(ctx));
+  api.use('/pioneer', pioneerRoutes(ctx));
+  api.use('/admin/pioneers', adminPioneerRoutes(ctx));
   api.use('/admin/shop', adminShopRoutes(ctx));
   api.use('/admin', adminRoutes(ctx));
   api.use(meRoutes(ctx));

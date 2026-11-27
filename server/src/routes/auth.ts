@@ -3,6 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { logAdmin, publicProfile, type Ctx } from '../domain.js';
 import { forbidden, notFound } from '../lib/errors.js';
 import { ah, parse } from '../lib/http.js';
+import { onFirstLogin } from '../lib/pioneer.js';
 import { logger } from '../lib/logger.js';
 import { verifyPiAccessToken } from '../lib/pi.js';
 import { signSession } from '../lib/session.js';
@@ -56,6 +57,7 @@ export function authRoutes(ctx: Ctx) {
       }
 
       if (profile.status !== 'active') throw forbidden('Votre compte est suspendu.');
+      if (ctx.config.pi.network === 'testnet') await onFirstLogin(ctx.store, profile.id);
       logger.info('auth: connexion Pi réussie', { role: profile.role });
       res.json({ token: signSession(profile.id, ctx.config.sessionSecret), profile: publicProfile(profile) });
     }),

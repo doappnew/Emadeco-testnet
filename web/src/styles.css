@@ -347,3 +347,14 @@ textarea { resize: vertical; }
 
 /* Message d'erreur lisible sur la photo de l'accueil */
 .hero .notice-error { background: #fbe9e9; color: #6e1d1d; text-align: center; margin: 0; }
+
+/* Test de paiement Testnet (pionniers) */
+.pioneer-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; margin: 16px 0; }
+.pioneer-card h2 { margin: 0 0 8px; font-size: 1.05rem; }
+.pioneer-steps { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; }
+.pioneer-steps .ok { color: #1b7a4b; font-weight: 700; }
+.pioneer-steps .ko { color: #b3261e; font-weight: 700; }
+.pioneer-count { font-weight: 600; margin: 6px 0; }
+.pioneer-banner { display: flex; align-items: flex-start; gap: 8px; background: #fff7df; border: 1px solid #e6c766; color: #3a2f08; border-radius: var(--radius); padding: 10px 12px; margin: 0 0 12px; font-size: 0.9rem; }
+.pioneer-banner p { margin: 0; flex: 1; }
+.pioneer-banner a { color: inherit; text-decoration: underline; }

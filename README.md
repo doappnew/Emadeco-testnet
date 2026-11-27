@@ -95,6 +95,10 @@ Développement avec rechargement : `cp .env.example .env` puis `npm run dev` (AP
 
 Scopes demandés : `username` à la connexion (aucune adresse de portefeuille). Le droit `payments` n'est demandé qu'au moment de payer une commande de la boutique.
 
+## Test de paiement des 5 pionniers (Testnet)
+
+Migration `0008_pioneer_test.sql` (table `pioneer_test`, RLS sans politique : accès serveur uniquement, plafond de 5 garanti par un déclencheur SQL). Un pionnier est **validé** quand le serveur a vérifié son paiement auprès de l'API Pi et passé la commande à « payée » (une seule fois par compte ; au-delà de 5 comptes validés, l'application fonctionne normalement mais plus aucun compte n'est ajouté). À la première connexion, une notification « Test de paiement Testnet » est créée une seule fois par compte. Actif uniquement avec `PI_NETWORK=testnet`. Écran Profil : bloc de suivi ; accueil : bannière masquable ; administration : onglet « Pionniers ».
+
 ## Dépannage connexion Pi
 
 **Symptôme** : dans Pi Browser, la connexion échoue avec « Pi : Authentication failed » *avant* tout appel au serveur.

@@ -15,6 +15,7 @@ const TABLES: Table[] = [
   'admin_logs',
   'products',
   'orders',
+  'pioneer_test',
 ];
 
 function matches(row: Row, q?: Query): boolean {

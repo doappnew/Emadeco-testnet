@@ -71,10 +71,10 @@ afterAll(async () => {
 });
 
 describe('schéma', () => {
-  it('toutes les migrations s’appliquent et créent les 13 tables prévues', async () => {
+  it('toutes les migrations s’appliquent et créent les 14 tables prévues', async () => {
     const t = (await q(`select tablename from pg_tables where schemaname='public' order by 1`)).map((r) => r.tablename);
     expect(t).toEqual(
-      ['admin_logs', 'favorites', 'notifications', 'portfolio_items', 'profiles', 'provider_profiles', 'reports', 'request_messages', 'service_categories', 'service_requests', 'services', 'products', 'orders'].sort(),
+      ['admin_logs', 'favorites', 'notifications', 'portfolio_items', 'profiles', 'provider_profiles', 'reports', 'request_messages', 'service_categories', 'service_requests', 'services', 'products', 'orders', 'pioneer_test'].sort(),
     );
   });
   it('AUCUNE colonne financière hors boutique (demandes, prestataires, services : ni budget, ni tarif, ni devis…)', async () => {
@@ -255,5 +255,31 @@ describe('boutique — SQL', () => {
   it('contraintes : quantité et montant', async () => {
     await expect(db.exec(`insert into orders (client_id, product_title, quantity, unit_price_pi, total_pi, recipient_name, phone, country, city, address) values ('${A}','x',0,1,1,'Nom X','123456','BJ','Cotonou','Adresse 1')`)).rejects.toThrow();
     await expect(db.exec(`insert into products (title, price_pi) values ('Gratuit', 0)`)).rejects.toThrow();
+  });
+
+  describe('test des pionniers', () => {
+    const ids = [1, 2, 3, 4, 5, 6].map((n) => `7000000${n}-0000-4000-8000-000000000001`);
+    it('RLS sans politique : un utilisateur ne lit ni n’écrit rien', async () => {
+      await db.exec(`insert into profiles (id, pi_uid, pi_username, role) values ${ids.map((id, i) => `('${id}','pio-uid-${i}','pio${i}','client')`).join(',')}`);
+      await db.exec(`insert into pioneer_test (profile_id) values ('${ids[0]}')`);
+      await as(A, async () => {
+        expect((await q('select count(*)::int n from pioneer_test'))[0]!.n).toBe(0);
+        await expect(db.exec(`insert into pioneer_test (profile_id, paid_ok) values ('${A}', true)`)).rejects.toThrow(/row-level security/);
+      });
+      await as(null, async () => expect((await q('select count(*)::int n from pioneer_test'))[0]!.n).toBe(0));
+    });
+    it('un seul enregistrement par compte et plafond de 5 comptes validés', async () => {
+      await expect(db.exec(`insert into pioneer_test (profile_id) values ('${ids[0]}')`)).rejects.toThrow(/duplicate key/);
+      for (const id of ids.slice(0, 5)) {
+        await db.exec(`insert into pioneer_test (profile_id, paid_ok, validated_at) values ('${id}', true, now()) on conflict (profile_id) do update set paid_ok = true, validated_at = now()`);
+      }
+      expect((await q('select count(*)::int n from pioneer_test where paid_ok'))[0]!.n).toBe(5);
+      await expect(db.exec(`insert into pioneer_test (profile_id, paid_ok) values ('${ids[5]}', true)`)).rejects.toThrow(/pioneer_cap_reached/);
+      await db.exec(`insert into pioneer_test (profile_id) values ('${ids[5]}')`); // simple connexion : autorisée
+      await expect(db.exec(`update pioneer_test set paid_ok = true where profile_id = '${ids[5]}'`)).rejects.toThrow(/pioneer_cap_reached/);
+      await db.exec(`update pioneer_test set validated_at = now() where profile_id = '${ids[0]}'`); // un compte déjà validé reste modifiable
+      expect((await q('select count(*)::int n from pioneer_test where paid_ok'))[0]!.n).toBe(5);
+      await db.exec(`delete from pioneer_test; delete from profiles where id in (${ids.map((i) => `'${i}'`).join(',')})`);
+    });
   });
 });

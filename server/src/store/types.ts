@@ -13,7 +13,8 @@ export type Table =
   | 'reports'
   | 'admin_logs'
   | 'products'
-  | 'orders';
+  | 'orders'
+  | 'pioneer_test';
 
 export interface Query {
   eq?: Record<string, unknown>;

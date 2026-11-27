@@ -322,3 +322,32 @@ export function AdminOrders() {
     </>
   );
 }
+
+// ---------------------------------------------------------------- Pionniers (test Testnet)
+export function AdminPioneers() {
+  const { data, loading, error, reload } = useAsync(
+    () => api.get<{ count: number; max: number; pioneers: { pi_username: string; validated_at: string }[] }>('/admin/pioneers'),
+    [],
+  );
+  if (loading && !data) return <Spinner />;
+  if (error || !data) return <ErrorState message={error ?? 'Erreur'} onRetry={reload} />;
+  return (
+    <>
+      <p className="pioneer-count">
+        Pionniers validés : {data.count} / {data.max}
+      </p>
+      {data.pioneers.length === 0 ? (
+        <EmptyState title="Aucun pionnier validé" text="Un pionnier est validé quand son paiement de test est vérifié par le serveur." />
+      ) : (
+        <ul className="list">
+          {data.pioneers.map((p) => (
+            <li key={p.pi_username} className="row">
+              <strong>@{p.pi_username}</strong>
+              <span className="muted small">{formatDateTime(p.validated_at)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Bell, FileText, Heart, LogOut, Package, Shield, Store } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { PioneerBlock } from '../components/PioneerTest';
 import { Field, SectionTitle, useToast } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -102,6 +103,8 @@ export default function Profile() {
           </li>
         )}
       </ul>
+
+      <PioneerBlock />
 
       <SectionTitle>Mes informations</SectionTitle>
       <div className="form">
