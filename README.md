@@ -95,9 +95,18 @@ Développement avec rechargement : `cp .env.example .env` puis `npm run dev` (AP
 
 Scopes demandés : `username` à la connexion (aucune adresse de portefeuille). Le droit `payments` n'est demandé qu'au moment de payer une commande de la boutique.
 
-## Test de paiement des 5 pionniers (Testnet)
+## Tests Testnet : paiement (facultatif) et réception (5 pionniers)
 
-Migration `0008_pioneer_test.sql` (table `pioneer_test`, RLS sans politique : accès serveur uniquement, plafond de 5 garanti par un déclencheur SQL). Un pionnier est **validé** quand le serveur a vérifié son paiement auprès de l'API Pi et passé la commande à « payée » (une seule fois par compte ; au-delà de 5 comptes validés, l'application fonctionne normalement mais plus aucun compte n'est ajouté). À la première connexion, une notification « Test de paiement Testnet » est créée une seule fois par compte. Actif uniquement avec `PI_NETWORK=testnet`. Écran Profil : bloc de suivi ; accueil : bannière masquable ; administration : onglet « Pionniers ».
+**Test de paiement (U2A, utilisateur → application)** : facultatif et **sans limite de comptes**. N'importe quel utilisateur peut passer une commande d'essai dans la boutique et la payer en Pi Testnet. L'écran Profil n'affiche qu'une liste de contrôle d'information (Connexion ✔, Paiement de test ✔/✖), sans compteur ni plafond. Seul garde-fou : `PI_MAX_PAYMENT` (plafond du total d'une commande).
+
+**Test de réception (A2U, application → utilisateur)** : c'est le **test des 5 pionniers**. Chaque pionnier reçoit **un seul** petit envoi de test de l'application (0,1 Pi Testnet par défaut, jamais plus de 1, fixé par le serveur).
+- Route `POST /api/testnet-payout` (connexion requise, limitée en débit). **Fermée (404 « Indisponible »)** tant que `TESTNET_PAYOUT` n'est pas `1`, que `PI_API_KEY` ou `PI_WALLET_SEED` manque, ou que `PI_NETWORK` n'est pas `testnet`, ou si l'administrateur a clôturé le test.
+- Un seul envoi par compte (409) ; 5 comptes au plus (403 « Le nombre maximal de pionniers du test est atteint. »), garanti par la clé primaire et un déclencheur SQL (migration `0008_testnet_payouts.sql`). La ligne « pending » est enregistrée **avant** de créer le paiement, ce qui interdit un double envoi.
+- Le serveur crée le paiement A2U, vérifie qu'il est sur « Pi Testnet » (sinon l'annule), signe et envoie la transaction avec le portefeuille de l'application (`PI_WALLET_SEED`), puis finalise auprès de l'API Pi. En cas d'échec avant l'envoi : statut `failed` (le compte peut réessayer et ne compte pas dans le plafond). Si la transaction est partie mais que la finalisation échoue : statut `pending`, pas de second envoi.
+- `PI_WALLET_SEED` ne vit que dans les variables d'environnement Render ; jamais dans le code ni les journaux (les journaux n'indiquent que l'étape en échec).
+- Côté navigateur, l'autorisation `wallet_address` n'est demandée **qu'au clic** sur « Recevoir mon envoi de test (Testnet) » ; la connexion normale reste `username` seulement.
+- Bloc Profil, bannière d'accueil et notification (une fois par compte, à la connexion) disparaissent dès que l'envoi est reçu (le message « Envoi de test reçu ✔ » s'affiche une seule fois), que les 5 pionniers sont servis, que l'administrateur clôture le test ou que `TESTNET_PAYOUT` n'est pas `1`.
+- Administration → « Test de réception » : « Pionniers servis : X / 5 », liste (nom Pi, statut, date) et bouton « Clôturer le test » (état dans la table `app_settings`).
 
 ## Dépannage connexion Pi
 
@@ -144,6 +153,9 @@ Voir `.env.example` (aucune valeur secrète). Aucune variable n'est lue par le f
 | `PI_VALIDATION_KEY` | recommandé | Clé de vérification de domaine Pi |
 | `PI_API_KEY` | pour la boutique | Clé API serveur Pi (Developer Portal) : approuve et finalise les paiements de la boutique (`lib/piPayments.ts`). Sans elle, le paiement est refusé. Jamais dans Git ni dans les journaux |
 | `PI_MAX_PAYMENT` | non | Plafond par commande, en Pi. Si défini et > 0, toute commande dont le total le dépasse est refusée (« Montant maximal autorisé pendant la phase de test : X Pi. ») |
+| `TESTNET_PAYOUT` | non | `1` ouvre le test de réception A2U (sinon la route est fermée) |
+| `TESTNET_PAYOUT_AMOUNT` | non | Envoi de test par pionnier, en Pi Testnet (0,1 par défaut, max 1) |
+| `PI_WALLET_SEED` | pour le test de réception | Seed (S…) du portefeuille de l'application, **secret**, Render uniquement |
 | `STRICT_HEADERS` | non | `1` = applique helmet (CSP/COOP/CORP). Défaut : désactivé (§ Dépannage connexion Pi) |
 | `ADMIN_PI_USERNAMES` | recommandé | Administrateurs initiaux |
 | `DEMO_MODE` | non | Jamais actif en production |
