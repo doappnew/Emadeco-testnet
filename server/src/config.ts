@@ -24,6 +24,7 @@ const envSchema = z.object({
   ADMIN_PI_USERNAMES: z.string().optional(),
   DEMO_MODE: z.enum(['true', 'false']).optional(),
   WEB_DIR: z.string().optional(),
+  STRICT_HEADERS: z.string().optional(),
 });
 
 export interface Config {
@@ -35,6 +36,8 @@ export interface Config {
   adminUsernames: string[];
   /** Connexion de démonstration (jamais active en production). */
   demoMode: boolean;
+  /** STRICT_HEADERS=1 : applique helmet (CSP, COOP, CORP…). Désactivé par défaut (voir README, « Dépannage connexion Pi »). */
+  strictHeaders: boolean;
   webDir: string;
 }
 
@@ -81,6 +84,7 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv = process.env): Config {
     },
     adminUsernames: csv(e.ADMIN_PI_USERNAMES),
     demoMode,
+    strictHeaders: e.STRICT_HEADERS === '1',
     webDir: e.WEB_DIR ? path.resolve(e.WEB_DIR) : path.resolve(here, '../../web/dist'),
   };
 }

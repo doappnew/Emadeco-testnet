@@ -385,13 +385,21 @@ describe('robustesse', () => {
     expect(JSON.stringify(res.body)).not.toMatch(/at .*\.(ts|js)|node_modules|SESSION_SECRET/);
     await h.http.post('/api/requests').set((await loginPi(h, 'a1')).auth).send({ x: 'y'.repeat(60_000) }).expect(413);
   });
-  it('envoie les en-têtes de sécurité (CSP autorisant uniquement le SDK Pi)', async () => {
-    const res = await h.http.get('/api/health').expect(200);
+  it('envoie les en-têtes de sécurité (CSP autorisant uniquement le SDK Pi) quand STRICT_HEADERS=1', async () => {
+    const x = await makeApp({ STRICT_HEADERS: '1' });
+    const res = await x.http.get('/api/health').expect(200);
     const csp = res.headers['content-security-policy'] as string;
     expect(csp).toContain('https://sdk.minepi.com');
     expect(csp).toContain("object-src 'none'");
     expect(res.headers['x-powered-by']).toBeUndefined();
     expect(res.headers['x-content-type-options']).toBe('nosniff');
+  });
+  it('n’applique pas helmet par défaut (ni CSP, ni COOP, ni CORP) mais masque x-powered-by', async () => {
+    const res = await h.http.get('/api/health').expect(200);
+    expect(res.headers['content-security-policy']).toBeUndefined();
+    expect(res.headers['cross-origin-opener-policy']).toBeUndefined();
+    expect(res.headers['cross-origin-resource-policy']).toBeUndefined();
+    expect(res.headers['x-powered-by']).toBeUndefined();
   });
   it('sert la clé de validation de domaine Pi quand elle est configurée', async () => {
     const x = await makeApp({ PI_VALIDATION_KEY: 'cle-de-validation-123' });

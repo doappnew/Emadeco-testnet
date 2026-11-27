@@ -95,6 +95,21 @@ Développement avec rechargement : `cp .env.example .env` puis `npm run dev` (AP
 
 Scopes demandés : `username` uniquement (aucun paiement, aucune adresse de portefeuille).
 
+## Dépannage connexion Pi
+
+**Symptôme** : dans Pi Browser, la connexion échoue avec « Pi : Authentication failed » *avant* tout appel au serveur.
+
+**Cause observée** (sur une autre application du même propriétaire) : les en-têtes de sécurité de `helmet` (CSP, COOP, CORP) empêchaient le SDK Pi de finaliser l'authentification ; la connexion n'a fonctionné qu'après leur désactivation.
+
+**Interrupteur** : variable d'environnement `STRICT_HEADERS`.
+
+| Valeur | Effet |
+|---|---|
+| absente / autre (défaut) | `helmet` **n'est pas appliqué** ; `x-powered-by` reste désactivé |
+| `1` | `helmet` appliqué (CSP limitée au SDK Pi, `frame-ancestors` Pi, etc.) |
+
+Réversible : définissez `STRICT_HEADERS=1` dans Render (l'application redéploie) pour rétablir les en-têtes stricts. Autres causes possibles si l'échec persiste : application non enregistrée ou domaine non vérifié dans le Developer Portal (§4), test fait hors Pi Browser.
+
 ## 5. Hébergement (Render)
 
 1. Poussez le dépôt sur GitHub, puis Render → **New → Blueprint** : il lit `render.yaml`.
@@ -124,6 +139,7 @@ Voir `.env.example` (aucune valeur secrète). Aucune variable n'est lue par le f
 | `PI_SANDBOX` | non | `true` pour le bac à sable Pi |
 | `PI_VALIDATION_KEY` | recommandé | Clé de vérification de domaine Pi |
 | `PI_API_KEY` | non | Inutilisée (aucun paiement) |
+| `STRICT_HEADERS` | non | `1` = applique helmet (CSP/COOP/CORP). Défaut : désactivé (§ Dépannage connexion Pi) |
 | `ADMIN_PI_USERNAMES` | recommandé | Administrateurs initiaux |
 | `DEMO_MODE` | non | Jamais actif en production |
 

@@ -24,30 +24,34 @@ export function createApp(ctx: Ctx) {
   app.disable('x-powered-by');
   app.set('trust proxy', 1); // Render / reverse proxy : IP réelle pour le rate limiting
 
-  // En-têtes de sécurité. Le SDK Pi est chargé depuis sdk.minepi.com ; Pi Browser (et le bac à sable
+  // En-têtes de sécurité (helmet) : OPTIONNELS, activés seulement avec STRICT_HEADERS=1.
+  // Par défaut ils sont désactivés : sur une autre application, la connexion Pi échouait (« Authentication
+  // failed ») tant que helmet (CSP, COOP, CORP) était actif. Le SDK Pi est chargé depuis sdk.minepi.com ; Pi Browser (et le bac à sable
   // Pi) peuvent embarquer l'application dans un cadre : frame-ancestors autorise les domaines Pi.
-  app.use(
-    helmet({
-      frameguard: false,
-      crossOriginEmbedderPolicy: false,
-      contentSecurityPolicy: {
-        useDefaults: false,
-        directives: {
-          'default-src': ["'self'"],
-          'script-src': ["'self'", 'https://sdk.minepi.com'],
-          'style-src': ["'self'", "'unsafe-inline'"],
-          'img-src': ["'self'", 'data:', 'blob:', 'https://*.supabase.co'],
-          'font-src': ["'self'", 'data:'],
-          'connect-src': ["'self'", 'https://*.minepi.com'],
-          'frame-src': ['https://*.minepi.com', 'https://*.pinet.com'],
-          'frame-ancestors': ["'self'", 'https://*.minepi.com', 'https://*.pinet.com'],
-          'object-src': ["'none'"],
-          'base-uri': ["'self'"],
-          'form-action': ["'self'"],
+  if (config.strictHeaders) {
+    app.use(
+      helmet({
+        frameguard: false,
+        crossOriginEmbedderPolicy: false,
+        contentSecurityPolicy: {
+          useDefaults: false,
+          directives: {
+            'default-src': ["'self'"],
+            'script-src': ["'self'", 'https://sdk.minepi.com'],
+            'style-src': ["'self'", "'unsafe-inline'"],
+            'img-src': ["'self'", 'data:', 'blob:', 'https://*.supabase.co'],
+            'font-src': ["'self'", 'data:'],
+            'connect-src': ["'self'", 'https://*.minepi.com'],
+            'frame-src': ['https://*.minepi.com', 'https://*.pinet.com'],
+            'frame-ancestors': ["'self'", 'https://*.minepi.com', 'https://*.pinet.com'],
+            'object-src': ["'none'"],
+            'base-uri': ["'self'"],
+            'form-action': ["'self'"],
+          },
         },
-      },
-    }),
-  );
+      }),
+    );
+  }
 
   app.use(express.json({ limit: '50kb' }));
 
