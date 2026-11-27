@@ -117,8 +117,8 @@ describe('test de réception A2U — envoi', () => {
     const s = await setup({ ...ON, TESTNET_PAYOUT_AMOUNT: '50' });
     await s.send(await s.login('alice'));
     expect(s.created[0].amount).toBe(1);
-    expect(loadConfig({ ...ON, TESTNET_PAYOUT_AMOUNT: 'abc' } as NodeJS.ProcessEnv).testnetPayout.amount).toBe(0.1);
-    expect(loadConfig({ ...ON, TESTNET_PAYOUT_AMOUNT: '0.25' } as NodeJS.ProcessEnv).testnetPayout.amount).toBe(0.25);
+    expect(loadConfig({ ...ON, TESTNET_PAYOUT_AMOUNT: 'abc' } as NodeJS.ProcessEnv).testnetPayout.sendPi).toBe(0.1);
+    expect(loadConfig({ ...ON, TESTNET_PAYOUT_AMOUNT: '0.25' } as NodeJS.ProcessEnv).testnetPayout.sendPi).toBe(0.25);
   });
 
   it('un seul envoi par compte (409), y compris deux requêtes simultanées', async () => {

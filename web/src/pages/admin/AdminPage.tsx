@@ -6,14 +6,14 @@ import { api, errorMessage } from '../../lib/api';
 import { formatDate, formatDateTime } from '../../lib/format';
 import { useAsync } from '../../lib/hooks';
 import type { Category, RequestStatus } from '../../lib/types';
-import { AdminOrders, AdminPioneers, AdminProducts } from './AdminShop';
+import { AdminOrders, AdminPayouts, AdminProducts } from './AdminShop';
 
-type Tab = 'stats' | 'orders' | 'products' | 'pioneers' | 'providers' | 'portfolio' | 'users' | 'categories' | 'requests' | 'reports' | 'logs';
+type Tab = 'stats' | 'orders' | 'products' | 'payouts' | 'providers' | 'portfolio' | 'users' | 'categories' | 'requests' | 'reports' | 'logs';
 const TABS: [Tab, string][] = [
   ['stats', 'Statistiques'],
   ['orders', 'Commandes'],
   ['products', 'Produits'],
-  ['pioneers', 'Pionniers'],
+  ['payouts', 'Test de réception'],
   ['providers', 'Prestataires'],
   ['portfolio', 'Photos'],
   ['users', 'Utilisateurs'],
@@ -43,7 +43,7 @@ export default function AdminPage() {
       {tab === 'stats' && <Stats />}
       {tab === 'orders' && <AdminOrders />}
       {tab === 'products' && <AdminProducts />}
-      {tab === 'pioneers' && <AdminPioneers />}
+      {tab === 'payouts' && <AdminPayouts />}
       {tab === 'providers' && <Providers />}
       {tab === 'portfolio' && <Portfolio />}
       {tab === 'users' && <Users />}

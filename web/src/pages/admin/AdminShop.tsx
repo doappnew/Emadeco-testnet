@@ -323,27 +323,65 @@ export function AdminOrders() {
   );
 }
 
-// ---------------------------------------------------------------- Pionniers (test Testnet)
-export function AdminPioneers() {
+// ---------------------------------------------------------------- Test de réception (A2U)
+const PAYOUT_STATUS: Record<string, string> = { pending: 'En cours', completed: 'Reçu', failed: 'Échec' };
+
+export function AdminPayouts() {
+  const { toast } = useToast();
+  const [confirming, setConfirming] = useState(false);
   const { data, loading, error, reload } = useAsync(
-    () => api.get<{ count: number; max: number; pioneers: { pi_username: string; validated_at: string }[] }>('/admin/pioneers'),
+    () =>
+      api.get<{ available: boolean; closed: boolean; served: number; max: number; payouts: { pi_username: string; status: string; created_at: string }[] }>(
+        '/admin/testnet-payout',
+      ),
     [],
   );
   if (loading && !data) return <Spinner />;
   if (error || !data) return <ErrorState message={error ?? 'Erreur'} onRetry={reload} />;
+
+  const close = async () => {
+    try {
+      await api.post('/admin/testnet-payout/close', {});
+      toast('Test clôturé : boutons et messages retirés pour tout le monde.');
+      setConfirming(false);
+      reload();
+    } catch (e) {
+      toast(errorMessage(e), 'error');
+    }
+  };
+
   return (
     <>
       <p className="pioneer-count">
-        Pionniers validés : {data.count} / {data.max}
+        Pionniers servis : {data.served} / {data.max}
       </p>
-      {data.pioneers.length === 0 ? (
-        <EmptyState title="Aucun pionnier validé" text="Un pionnier est validé quand son paiement de test est vérifié par le serveur." />
+      {!data.available && <p className="muted small">Test désactivé sur le serveur (TESTNET_PAYOUT, PI_API_KEY, PI_WALLET_SEED ou réseau).</p>}
+      {data.closed ? (
+        <p className="muted">Le test est clôturé.</p>
+      ) : confirming ? (
+        <div className="row">
+          <button className="btn btn-primary" onClick={close}>
+            Confirmer la clôture
+          </button>
+          <button className="btn btn-outline" onClick={() => setConfirming(false)}>
+            Annuler
+          </button>
+        </div>
+      ) : (
+        <button className="btn btn-outline" onClick={() => setConfirming(true)}>
+          Clôturer le test
+        </button>
+      )}
+      {data.payouts.length === 0 ? (
+        <EmptyState title="Aucun envoi pour le moment" text="Les pionniers apparaissent ici dès qu'ils demandent leur envoi de test." />
       ) : (
         <ul className="list">
-          {data.pioneers.map((p) => (
+          {data.payouts.map((p) => (
             <li key={p.pi_username} className="row">
               <strong>@{p.pi_username}</strong>
-              <span className="muted small">{formatDateTime(p.validated_at)}</span>
+              <span className="muted small">
+                {PAYOUT_STATUS[p.status] ?? p.status} · {formatDateTime(p.created_at)}
+              </span>
             </li>
           ))}
         </ul>

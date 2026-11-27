@@ -43,7 +43,7 @@ export interface Config {
   /** STRICT_HEADERS=1 : applique helmet (CSP, COOP, CORP…). Désactivé par défaut (voir README, « Dépannage connexion Pi »). */
   strictHeaders: boolean;
   /** Test de réception Testnet (A2U). Le seed du portefeuille ne vient que de l'environnement. */
-  testnetPayout: { enabled: boolean; walletSeed: string | null; amount: number };
+  testnetPayout: { enabled: boolean; walletSeed: string | null; sendPi: number };
   webDir: string;
 }
 
@@ -103,7 +103,7 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv = process.env): Config {
     testnetPayout: {
       enabled: e.TESTNET_PAYOUT === '1',
       walletSeed: e.PI_WALLET_SEED?.trim() || null,
-      amount: payoutAmount(e.TESTNET_PAYOUT_AMOUNT),
+      sendPi: payoutAmount(e.TESTNET_PAYOUT_AMOUNT),
     },
     webDir: e.WEB_DIR ? path.resolve(e.WEB_DIR) : path.resolve(here, '../../web/dist'),
   };

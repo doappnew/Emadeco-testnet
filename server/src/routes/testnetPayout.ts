@@ -62,7 +62,7 @@ export function testnetPayoutRoutes(ctx: Ctx) {
         offer: canOffer(st),
         received: st.mine?.status === 'completed',
         pending: st.mine?.status === 'pending',
-        amount: config.testnetPayout.amount,
+        amount: config.testnetPayout.sendPi,
         // Test de paiement (U2A) : facultatif, sans limite de comptes — simple liste de contrôle.
         payment_check: { enabled: testnet, done: paidOrders > 0 },
       });
@@ -77,7 +77,7 @@ export function testnetPayoutRoutes(ctx: Ctx) {
       if (!payoutAvailable(config) || (await isClosed(store))) throw notFound('Indisponible');
       const user = req.user!;
       const profileId = user.id as string;
-      const amount = config.testnetPayout.amount;
+      const amount = config.testnetPayout.sendPi;
 
       const [existing] = await store.select('testnet_payouts', { eq: { profile_id: profileId }, limit: 1 });
       if (existing && existing.status !== 'failed') throw conflict('Vous avez déjà reçu ou demandé votre envoi de test.', 'already_sent');

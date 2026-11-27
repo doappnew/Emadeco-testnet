@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Bell, FileText, Heart, LogOut, Package, Shield, Store } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { PioneerBlock } from '../components/PioneerTest';
+import { PaymentChecklist, PayoutBlock } from '../components/TestnetTests';
 import { Field, SectionTitle, useToast } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -104,7 +104,8 @@ export default function Profile() {
         )}
       </ul>
 
-      <PioneerBlock />
+      <PayoutBlock />
+      <PaymentChecklist />
 
       <SectionTitle>Mes informations</SectionTitle>
       <div className="form">

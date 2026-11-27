@@ -1,4 +1,4 @@
-import { PioneerBanner } from '../components/PioneerTest';
+import { PayoutBanner } from '../components/TestnetTests';
 import { useState } from 'react';
 import { Award, Handshake, KeyRound, Search, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -113,7 +113,7 @@ function HomeContent() {
 
   return (
     <>
-      <PioneerBanner />
+      <PayoutBanner />
       {(loading || shop.loading) && !data && <Spinner />}
       {error && <ErrorState message={error} onRetry={reload} />}
 

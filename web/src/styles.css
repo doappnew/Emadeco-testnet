@@ -348,7 +348,7 @@ textarea { resize: vertical; }
 /* Message d'erreur lisible sur la photo de l'accueil */
 .hero .notice-error { background: #fbe9e9; color: #6e1d1d; text-align: center; margin: 0; }
 
-/* Test de paiement Testnet (pionniers) */
+/* Tests Testnet (paiement facultatif, réception A2U) */
 .pioneer-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; margin: 16px 0; }
 .pioneer-card h2 { margin: 0 0 8px; font-size: 1.05rem; }
 .pioneer-steps { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; }
