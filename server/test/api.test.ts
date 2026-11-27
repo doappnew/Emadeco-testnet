@@ -369,9 +369,7 @@ describe('favoris et notifications', () => {
     const prov = await loginDemo(h, 'provider');
     const n = (await h.http.get('/api/notifications').set(prov.auth)).body;
     expect(n.unread).toBe(1);
-    // Alice ne voit que sa propre notice de première connexion (test Testnet), jamais celle du prestataire.
-    const mine = (await h.http.get('/api/notifications').set(alice.auth)).body.notifications;
-    expect(mine.map((x: any) => x.title)).toEqual(['Test de paiement Testnet']);
+    expect((await h.http.get('/api/notifications').set(alice.auth)).body.notifications).toHaveLength(0);
 
     // Alice ne peut pas marquer comme lue la notification du prestataire
     await h.http.post('/api/notifications/read').set(alice.auth).send({ ids: [n.notifications[0].id] }).expect(200);

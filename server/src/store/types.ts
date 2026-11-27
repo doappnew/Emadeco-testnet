@@ -14,7 +14,8 @@ export type Table =
   | 'admin_logs'
   | 'products'
   | 'orders'
-  | 'pioneer_test';
+  | 'testnet_payouts'
+  | 'app_settings';
 
 export interface Query {
   eq?: Record<string, unknown>;

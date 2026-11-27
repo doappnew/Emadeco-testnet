@@ -1,11 +1,14 @@
 import type { Config } from './config.js';
 import type { FetchLike } from './lib/pi.js';
+import type { StellarSubmit } from './lib/stellar.js';
 import type { Row, Store } from './store/types.js';
 
 export interface Ctx {
   config: Config;
   store: Store;
   fetchImpl?: FetchLike;
+  /** Signature et envoi Stellar d'un paiement A2U (remplaçable dans les tests). */
+  stellarSubmit?: StellarSubmit;
 }
 
 /** Profil exposé au navigateur (jamais pi_uid). */

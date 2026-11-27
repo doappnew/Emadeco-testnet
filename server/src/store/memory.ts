@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { Bucket, Query, Row, Store, Table } from './types.js';
+import { StoreError, type Bucket, type Query, type Row, type Store, type Table } from './types.js';
 
 const TABLES: Table[] = [
   'profiles',
@@ -15,8 +15,12 @@ const TABLES: Table[] = [
   'admin_logs',
   'products',
   'orders',
-  'pioneer_test',
+  'testnet_payouts',
+  'app_settings',
 ];
+
+/** Colonne à valeur unique par table (équivalent d'une clé primaire SQL). */
+const UNIQUE: Partial<Record<Table, string>> = { testnet_payouts: 'profile_id', app_settings: 'key' };
 
 function matches(row: Row, q?: Query): boolean {
   if (!q) return true;
@@ -52,6 +56,14 @@ export class MemoryStore implements Store {
   async insert(table: Table, rows: Row | Row[]): Promise<Row[]> {
     const list = Array.isArray(rows) ? rows : [rows];
     const now = new Date().toISOString();
+    const uniq = UNIQUE[table];
+    if (uniq) {
+      const seen = new Set(this.rows(table).map((r) => r[uniq]));
+      for (const r of list) {
+        if (seen.has(r[uniq])) throw new StoreError('Doublon.', '23505');
+        seen.add(r[uniq]);
+      }
+    }
     const inserted = list.map((r) => ({ id: randomUUID(), created_at: now, ...structuredClone(r) }));
     this.rows(table).push(...inserted);
     return inserted.map((r) => structuredClone(r));

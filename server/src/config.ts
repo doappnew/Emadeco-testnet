@@ -26,6 +26,9 @@ const envSchema = z.object({
   WEB_DIR: z.string().optional(),
   STRICT_HEADERS: z.string().optional(),
   PI_MAX_PAYMENT: z.string().optional(),
+  TESTNET_PAYOUT: z.string().optional(),
+  PI_WALLET_SEED: z.string().optional(),
+  TESTNET_PAYOUT_AMOUNT: z.string().optional(),
 });
 
 export interface Config {
@@ -39,7 +42,16 @@ export interface Config {
   demoMode: boolean;
   /** STRICT_HEADERS=1 : applique helmet (CSP, COOP, CORP…). Désactivé par défaut (voir README, « Dépannage connexion Pi »). */
   strictHeaders: boolean;
+  /** Test de réception Testnet (A2U). Le seed du portefeuille ne vient que de l'environnement. */
+  testnetPayout: { enabled: boolean; walletSeed: string | null; amount: number };
   webDir: string;
+}
+
+/** Montant de l'envoi de test, décidé par le serveur : 0,1 Pi par défaut, jamais plus de 1 Pi. */
+function payoutAmount(raw: string | undefined): number {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return 0.1;
+  return Math.min(Math.round(n * 1e7) / 1e7, 1);
 }
 
 export function loadConfig(rawEnv: NodeJS.ProcessEnv = process.env): Config {
@@ -88,6 +100,11 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv = process.env): Config {
     adminUsernames: csv(e.ADMIN_PI_USERNAMES),
     demoMode,
     strictHeaders: e.STRICT_HEADERS === '1',
+    testnetPayout: {
+      enabled: e.TESTNET_PAYOUT === '1',
+      walletSeed: e.PI_WALLET_SEED?.trim() || null,
+      amount: payoutAmount(e.TESTNET_PAYOUT_AMOUNT),
+    },
     webDir: e.WEB_DIR ? path.resolve(e.WEB_DIR) : path.resolve(here, '../../web/dist'),
   };
 }

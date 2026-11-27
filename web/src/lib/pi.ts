@@ -102,3 +102,13 @@ export async function piPay(o: PayOptions): Promise<'paid' | 'cancelled'> {
     );
   });
 }
+
+// Droits demandés UNIQUEMENT au clic sur « Recevoir mon envoi de test » (jamais à la connexion).
+const PAYOUT_SCOPES = ['username', 'payments', 'wallet_address'];
+
+/** Demande l'autorisation d'adresse de portefeuille pour recevoir l'envoi de test. La connexion normale n'est pas modifiée. */
+export async function piRequestWalletScope(opts: { sandbox: boolean }): Promise<void> {
+  const Pi = await sdk(opts.sandbox);
+  const auth = await Pi.authenticate(PAYOUT_SCOPES, () => undefined);
+  if (!auth?.accessToken) throw new Error('Autorisation Pi manquante');
+}

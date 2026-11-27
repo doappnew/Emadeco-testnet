@@ -4,7 +4,6 @@ import { notify, resolveImage, type Ctx } from '../domain.js';
 import { badRequest, conflict, forbidden, notFound } from '../lib/errors.js';
 import { ah, idParam, parse } from '../lib/http.js';
 import { amt, approvePayment, completePayment, getPayment, type PiPayment } from '../lib/piPayments.js';
-import { onOrderPaid } from '../lib/pioneer.js';
 import { nn } from '../lib/validation.js';
 import { orderCreateSchema, paymentCompleteSchema, paymentIdSchema } from '../lib/shopValidation.js';
 import { requireAuth } from '../middleware.js';
@@ -215,7 +214,6 @@ export function shopRoutes(ctx: Ctx) {
       { status: 'paid', pi_txid: chainTx ?? txid, paid_at: new Date().toISOString() },
     );
     if (!paid) return (await store.select('orders', { eq: { id: order.id }, limit: 1 }))[0]!;
-    if (ctx.config.pi.network === 'testnet') await onOrderPaid(store, user.id as string, paid.id as string);
     await notify(store, { user_id: user.id as string, type: 'system', title: 'Paiement reçu', body: `Commande « ${paid.product_title} » payée. Nous la préparons.` });
     const admins = await store.select('profiles', { eq: { role: 'admin', status: 'active' } });
     await Promise.all(admins.map((a) => notify(store, { user_id: a.id, type: 'system', title: 'Nouvelle commande payée', body: `${paid.product_title} × ${paid.quantity} — ${paid.city}` })));

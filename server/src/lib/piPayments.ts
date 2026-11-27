@@ -8,6 +8,10 @@ export interface PiPayment {
   user_uid: string;
   amount: number;
   memo?: string;
+  /** Paiement A2U : adresses (G…) de l'application et de l'utilisateur, et réseau (« Pi Testnet » / « Pi Network »). */
+  from_address?: string;
+  to_address?: string;
+  network?: string;
   metadata?: Record<string, unknown>;
   status: {
     developer_approved?: boolean;
@@ -68,6 +72,11 @@ export const getPayment = (o: PiApiOpts, id: string) => call(o, 'GET', `/payment
 export const approvePayment = (o: PiApiOpts, id: string) => call(o, 'POST', `/payments/${enc(id)}/approve`, {});
 export const completePayment = (o: PiApiOpts, id: string, txid: string) =>
   call(o, 'POST', `/payments/${enc(id)}/complete`, { txid });
+
+/** Paiement application → utilisateur (A2U) : le serveur fixe le montant et le destinataire (uid). */
+export const createA2UPayment = (o: PiApiOpts, p: { amount: number; memo: string; metadata: Record<string, unknown>; uid: string }) =>
+  call(o, 'POST', '/payments', { payment: p }) as Promise<PiPayment>;
+export const cancelPayment = (o: PiApiOpts, id: string) => call(o, 'POST', `/payments/${enc(id)}/cancel`, {});
 
 /** Montant en chaîne à 4 décimales, pour comparer sans erreur d'arrondi flottant. */
 export const amt = (n: unknown) => Number(n).toFixed(4);
